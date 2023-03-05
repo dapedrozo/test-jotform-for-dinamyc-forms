@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Hello Datatables filtering dates!</title>
+
+    <!-- Required meta tags -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.0/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.0/js/bootstrap.min.js"></script>
+
+    <!-- Datatables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/v/bs4-4.1.1/dt-1.10.18/datatables.min.css">
+    <script src="https://cdn.datatables.net/v/bs4-4.1.1/dt-1.10.18/datatables.min.js"></script>
+
+    <style>
+        #mydatatable tfoot input {
+            width: 100% !important;
+        }
+
+        #mydatatable tfoot {
+            display: table-header-group !important;
+        }
+    </style>
+</head>
+
+<body class="container-fluid p-5">
+    <div class="table-responsive" id="mydatatable-container">
+        <table class="records_list table table-striped table-bordered table-hover" id="mydatatable">
+            <thead>
+                <tr>
+                    <th>Column 1</th>
+                    <th>Column 2</th>
+                </tr>
+            </thead>
+            <tfoot>
+                <tr>
+                    <th>Filter..</th>
+                    <th class="date">Filter..</th>
+                </tr>
+            </tfoot>
+            <tbody>
+                <tr>
+                    <td>item 0 0</td>
+                    <td>2020-01-01</td>
+                </tr>
+                <tr>
+                    <td>item 0 0</td>
+                    <td>2021-01-01</td>
+                </tr>
+                <tr>
+                    <td>item 0 0</td>
+                    <td>2021-01-02</td>
+                </tr>
+                <tr>
+                    <td>item 0 0</td>
+                    <td>2021-01-03</td>
+                </tr>
+                <tr>
+                    <td>item 0 0</td>
+                    <td>2021-01-04</td>
+                </tr>
+                <tr>
+                    <td>item 0 0</td>
+                    <td>2021-01-05</td>
+                </tr>
+                <tr>
+                    <td>item 0 0</td>
+                    <td>2021-01-06</td>
+                </tr>
+                <tr>
+                    <td>item 0 0</td>
+                    <td>2021-01-07</td>
+                </tr>
+                <tr>
+                    <td>item 0 0</td>
+                    <td>2022-01-01</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#mydatatable tfoot th').each(function () {
+                var title = $(this).text();
+                if ($(this).hasClass('date')) {
+                    $(this).html(
+                        '<input id="date-from" type="text" placeholder="Date from.." />' +
+                        '<input id="date-to" type="text" placeholder="Date to.." />'
+                    );
+                } else {
+                    $(this).html('<input type="text" placeholder="Filter.." />');
+                }
+            });
+
+            $.fn.dataTable.ext.search.push(
+                function (settings, data, dataIndex) {
+                    var dateFrom = $('#date-from').val();
+                    var dateTo = $('#date-to').val();
+                    var date = data[1];
+
+                    if ((dateFrom == '' && dateTo == '') ||
+                        (dateFrom == '' && Date.parse(date) <= Date.parse(dateTo)) ||
+                        (Date.parse(dateFrom) <= Date.parse(date) && dateTo == '') ||
+                        (Date.parse(dateFrom) <= Date.parse(date) && Date.parse(date) <= Date.parse(dateTo))) {
+                        return true;
+                    }
+                    return false;
+                }
+            );
+
+            var table = $('#mydatatable').DataTable({
+                "dom": 'B<"float-left"i><"float-right"f>t<"float-left"l><"float-right"p><"clearfix">',
+                "responsive": false,
+                "language": {
+                    "url": "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Spanish.json"
+                },
+                "order": [
+                    [0, "desc"]
+                ],
+                "initComplete": function () {
+                    this.api().columns().every(function () {
+                        var that = this;
+
+                        $('input', this.footer()).on('keyup change', function () {
+                            if ($(this).closest('th').hasClass('date')) {
+                                console.log('Filtering dates..');
+                                table.draw();
+                            } else {
+                                if (that.search() !== this.value) {
+                                    that
+                                        .search(this.value)
+                                        .draw();
+                                }
+                            }
+                        });
+                    })
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
